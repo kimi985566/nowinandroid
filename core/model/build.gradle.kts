@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("kotlin")
+    id("nowinandroid.jvm.library")
 }
 
 dependencies {

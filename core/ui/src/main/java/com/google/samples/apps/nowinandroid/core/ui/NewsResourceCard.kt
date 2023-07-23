@@ -70,6 +70,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 import com.google.samples.apps.nowinandroid.core.designsystem.R as DesignsystemR
 
@@ -183,13 +184,13 @@ fun BookmarkButton(
         modifier = modifier,
         icon = {
             Icon(
-                painter = painterResource(NiaIcons.BookmarkBorder),
+                imageVector = NiaIcons.BookmarkBorder,
                 contentDescription = stringResource(R.string.bookmark),
             )
         },
         checkedIcon = {
             Icon(
-                painter = painterResource(NiaIcons.Bookmark),
+                imageVector = NiaIcons.Bookmark,
                 contentDescription = stringResource(R.string.unbookmark),
             )
         },
@@ -230,8 +231,11 @@ fun dateFormatted(publishDate: Instant): String {
         }
     }
 
-    return DateTimeFormatter.ofPattern("MMM d, yyyy")
-        .withZone(zoneId).format(publishDate.toJavaInstant())
+    return DateTimeFormatter
+        .ofLocalizedDate(FormatStyle.MEDIUM)
+        .withLocale(Locale.getDefault())
+        .withZone(zoneId)
+        .format(publishDate.toJavaInstant())
 }
 
 @Composable
@@ -248,14 +252,6 @@ fun NewsResourceMetaData(
         },
         style = MaterialTheme.typography.labelSmall,
     )
-}
-
-@Composable
-fun NewsResourceLink(
-    @Suppress("UNUSED_PARAMETER")
-    newsResource: NewsResource,
-) {
-    TODO()
 }
 
 @Composable

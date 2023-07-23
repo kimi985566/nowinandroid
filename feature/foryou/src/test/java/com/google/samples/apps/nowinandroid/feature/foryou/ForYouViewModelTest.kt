@@ -16,6 +16,9 @@
 
 package com.google.samples.apps.nowinandroid.feature.foryou
 
+import androidx.lifecycle.SavedStateHandle
+import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsEvent
+import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsEvent.Param
 import com.google.samples.apps.nowinandroid.core.data.repository.CompositeUserNewsResourceRepository
 import com.google.samples.apps.nowinandroid.core.domain.GetFollowableTopicsUseCase
 import com.google.samples.apps.nowinandroid.core.model.data.FollowableTopic
@@ -29,9 +32,10 @@ import com.google.samples.apps.nowinandroid.core.testing.repository.TestTopicsRe
 import com.google.samples.apps.nowinandroid.core.testing.repository.TestUserDataRepository
 import com.google.samples.apps.nowinandroid.core.testing.repository.emptyUserData
 import com.google.samples.apps.nowinandroid.core.testing.util.MainDispatcherRule
-import com.google.samples.apps.nowinandroid.core.testing.util.TestNetworkMonitor
+import com.google.samples.apps.nowinandroid.core.testing.util.TestAnalyticsHelper
 import com.google.samples.apps.nowinandroid.core.testing.util.TestSyncManager
 import com.google.samples.apps.nowinandroid.core.ui.NewsFeedUiState
+import com.google.samples.apps.nowinandroid.feature.foryou.navigation.LINKED_NEWS_RESOURCE_ID
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -42,6 +46,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 /**
  * To learn more about how this test handles Flows created with stateIn, see
@@ -51,8 +57,8 @@ class ForYouViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
-    private val networkMonitor = TestNetworkMonitor()
     private val syncManager = TestSyncManager()
+    private val analyticsHelper = TestAnalyticsHelper()
     private val userDataRepository = TestUserDataRepository()
     private val topicsRepository = TestTopicsRepository()
     private val newsRepository = TestNewsRepository()
@@ -65,12 +71,15 @@ class ForYouViewModelTest {
         topicsRepository = topicsRepository,
         userDataRepository = userDataRepository,
     )
+    private val savedStateHandle = SavedStateHandle()
     private lateinit var viewModel: ForYouViewModel
 
     @Before
     fun setup() {
         viewModel = ForYouViewModel(
             syncManager = syncManager,
+            savedStateHandle = savedStateHandle,
+            analyticsHelper = analyticsHelper,
             userDataRepository = userDataRepository,
             userNewsResourceRepository = userNewsResourceRepository,
             getFollowableTopics = getFollowableTopicsUseCase,
@@ -250,7 +259,6 @@ class ForYouViewModelTest {
         assertEquals(
             NewsFeedUiState.Success(
                 feed = emptyList(),
-
             ),
             viewModel.feedState.value,
         )
@@ -454,6 +462,48 @@ class ForYouViewModelTest {
 
         collectJob1.cancel()
         collectJob2.cancel()
+    }
+
+    @Test
+    fun deepLinkedNewsResourceIsFetchedAndResetAfterViewing() = runTest {
+        val collectJob =
+            launch(UnconfinedTestDispatcher()) { viewModel.deepLinkedNewsResource.collect() }
+
+        newsRepository.sendNewsResources(sampleNewsResources)
+        userDataRepository.setUserData(emptyUserData)
+        savedStateHandle[LINKED_NEWS_RESOURCE_ID] = sampleNewsResources.first().id
+
+        assertEquals(
+            expected = UserNewsResource(
+                newsResource = sampleNewsResources.first(),
+                userData = emptyUserData,
+            ),
+            actual = viewModel.deepLinkedNewsResource.value,
+        )
+
+        viewModel.onDeepLinkOpened(
+            newsResourceId = sampleNewsResources.first().id,
+        )
+
+        assertNull(
+            viewModel.deepLinkedNewsResource.value,
+        )
+
+        assertTrue(
+            analyticsHelper.hasLogged(
+                AnalyticsEvent(
+                    type = "news_deep_link_opened",
+                    extras = listOf(
+                        Param(
+                            key = LINKED_NEWS_RESOURCE_ID,
+                            value = sampleNewsResources.first().id,
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        collectJob.cancel()
     }
 }
 

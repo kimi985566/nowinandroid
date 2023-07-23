@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.nowinandroid.core.notifications
+package com.google.samples.apps.nowinandroid.core.testing.util
 
-import com.google.samples.apps.nowinandroid.core.model.data.NewsResource
-import javax.inject.Inject
-import javax.inject.Singleton
+import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsEvent
+import com.google.samples.apps.nowinandroid.core.analytics.AnalyticsHelper
 
-/**
- * Implementation of [Notifier] that displays notifications in the system tray.
- */
-@Singleton
-class AndroidSystemNotifier @Inject constructor() : Notifier {
+class TestAnalyticsHelper : AnalyticsHelper {
 
-    override fun onNewsAdded(newsResources: List<NewsResource>) {
-        // TODO, create notification and display to the user
+    private val events = mutableListOf<AnalyticsEvent>()
+    override fun logEvent(event: AnalyticsEvent) {
+        events.add(event)
     }
+
+    fun hasLogged(event: AnalyticsEvent) = events.contains(event)
 }

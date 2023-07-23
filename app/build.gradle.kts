@@ -23,13 +23,14 @@ plugins {
     id("nowinandroid.android.hilt")
     id("jacoco")
     id("nowinandroid.android.application.firebase")
+    id("com.google.android.gms.oss-licenses-plugin")
 }
 
 android {
     defaultConfig {
         applicationId = "com.google.samples.apps.nowinandroid"
-        versionCode = 5
-        versionName = "0.0.5" // X.Y.Z; X = Major, Y = minor, Z = Patch level
+        versionCode = 7
+        versionName = "0.1.1" // X.Y.Z; X = Major, Y = minor, Z = Patch level
 
         // Custom test runner to set up Hilt dependency graph
         testInstrumentationRunner = "com.google.samples.apps.nowinandroid.core.testing.NiaTestRunner"
@@ -118,7 +119,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.window.manager)
     implementation(libs.androidx.profileinstaller)
-
+    implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.coil.kt)
 }
 

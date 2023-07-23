@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.android.build.api.dsl.ManagedVirtualDevice
 import com.google.samples.apps.nowinandroid.NiaBuildType
 import com.google.samples.apps.nowinandroid.configureFlavors
 
@@ -25,7 +24,7 @@ android {
     namespace = "com.google.samples.apps.nowinandroid.benchmarks"
 
     defaultConfig {
-        minSdk = 23
+        minSdk = 28
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "APP_BUILD_TYPE_SUFFIX", "\"\"")
